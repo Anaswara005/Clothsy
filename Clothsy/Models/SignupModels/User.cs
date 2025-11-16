@@ -1,5 +1,4 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Clothsy.Models.SignupModels
@@ -14,12 +13,17 @@ namespace Clothsy.Models.SignupModels
         [MaxLength(100)]
         public string FullName { get; set; } = string.Empty;
 
-        [MaxLength(10)]
-        public string? PhoneNumber { get; set; }
+        [Required]
+        [MaxLength(20)]
+        public string PhoneNumber { get; set; } = string.Empty;
 
+        [Required]
         [MaxLength(100)]
-        public string? Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        [Required]
+        public string PasswordHash { get; set; } = string.Empty;
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

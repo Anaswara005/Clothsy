@@ -1,72 +1,183 @@
-﻿using Clothsy.DTOs.SignupDTOs;
+﻿using Clothsy.Data;
+using Clothsy.DTOs.SignupDTOs;
+using Clothsy.Models.SignupModels;
+using Clothsy.Services.AuthServices.Signup_Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OtpAuthApi.Services;
 
-namespace OtpAuthApi.Controllers
+namespace ClothsyAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly ApplicationDbContext _context;
+        private readonly IPasswordService _passwordService;
+        private readonly ITokenService _tokenService;
 
-        public AuthController(IUserService userService)
+        public AuthController(
+            ApplicationDbContext context,
+            IPasswordService passwordService,
+            ITokenService tokenService)
         {
-            _userService = userService;
+            _context = context;
+            _passwordService = passwordService;
+            _tokenService = tokenService;
         }
 
-        /// <summary>
-        /// Initiate signup and send OTP
-        /// </summary>
-        /// <param name="request">Signup details including full name, phone/email, and contact type</param>
-        /// <returns>Success response with contact value where OTP was sent</returns>
+        // POST: api/auth/signup
         [HttpPost("signup")]
         public async Task<IActionResult> Signup([FromBody] SignupRequest request)
         {
-            var result = await _userService.SignupAsync(request);
-
-            if (!result.Success)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(result);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Validation failed",
+                    errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
             }
 
-            return Ok(result);
+            // Check if phone number already exists
+            var existingPhoneUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
+
+            if (existingPhoneUser != null) 
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Phone number already registered"
+                });
+            }
+
+            // Check if email already exists
+            var existingEmailUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            if (existingEmailUser != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Email already registered"
+                });
+            }
+
+            // Hash the password
+            var passwordHash = _passwordService.HashPassword(request.Password);
+
+            // Create new user
+            var user = new User
+            {
+                FullName = request.FullName,
+                PhoneNumber = request.PhoneNumber,
+                Email = request.Email,
+                PasswordHash = passwordHash,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            // Generate JWT token
+            var token = _tokenService.GenerateToken(user.Id, user.Email);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Signup successful",
+                token = token,
+                userId = user.Id
+            });
         }
 
-        /// <summary>
-        /// Verify OTP and complete signup
-        /// </summary>
-        /// <param name="request">OTP verification details</param>
-        /// <returns>Success response with redirect URL</returns>
-        [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
+        // POST: api/auth/login
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var result = await _userService.VerifyOtpAsync(request);
-
-            if (!result.Success)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(result);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Validation failed",
+                    errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
             }
 
-            return Ok(result);
+            // Find user by phone number or email
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneOrEmail || u.Email == request.PhoneOrEmail);
+
+            if (user == null)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid credentials"
+                });
+            }
+
+            // Verify password
+            if (!_passwordService.VerifyPassword(request.Password, user.PasswordHash))
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid credentials"
+                });
+            }
+
+            // Generate JWT token
+            var token = _tokenService.GenerateToken(user.Id, user.Email);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Login successful",
+                token = token,
+                userId = user.Id
+            });
         }
 
-        /// <summary>
-        /// Resend OTP to the same contact
-        /// </summary>
-        /// <param name="request">Contact details for OTP resend</param>
-        /// <returns>Success response</returns>
-        [HttpPost("resend-otp")]
-        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpRequest request)
+        // GET: api/auth/validate-token
+        [HttpGet("validate-token")]
+        public IActionResult ValidateToken()
         {
-            var result = await _userService.ResendOtpAsync(request);
+            var authHeader = Request.Headers["Authorization"].ToString();
 
-            if (!result.Success)
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
             {
-                return BadRequest(result);
+                return Ok(new { valid = false });
             }
 
-            return Ok(result);
+            var token = authHeader.Substring("Bearer ".Length).Trim();
+            var principal = _tokenService.ValidateToken(token);
+
+            if (principal == null)
+            {
+                return Ok(new { valid = false });
+            }
+
+            return Ok(new { valid = true });
+        }
+
+        // POST: api/auth/logout
+        [HttpPost("logout")]
+        [Authorize]
+        public IActionResult Logout()
+        {
+            // In JWT, logout is handled on client side by removing the token
+            // This endpoint is provided for consistency but doesn't need to do anything server-side
+            return Ok(new
+            {
+                success = true,
+                message = "Logout successful"
+            });
         }
     }
 }
