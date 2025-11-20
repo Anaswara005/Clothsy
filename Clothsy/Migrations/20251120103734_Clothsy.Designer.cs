@@ -4,6 +4,7 @@ using Clothsy.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Clothsy.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251120103734_Clothsy")]
+    partial class Clothsy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -154,7 +157,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 1,
                             Address = " Trivandrum, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8827),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3555),
                             District = "Trivandrum",
                             Email = "clothsy.trivandrum@clothsy.in",
                             IsActive = true,
@@ -165,7 +168,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 2,
                             Address = "Kollam, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8832),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3559),
                             District = "Kollam",
                             Email = "clothsy.kollam@clothsy.in",
                             IsActive = true,
@@ -176,7 +179,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 3,
                             Address = "Pathanamthitta, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8834),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3560),
                             District = "Pathanamthitta",
                             Email = "clothsy.pathanamthitta@clothsy.in",
                             IsActive = true,
@@ -187,7 +190,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 4,
                             Address = "Alappuzha, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8836),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3562),
                             District = "Alappuzha",
                             Email = "clothsy.alappuzha@clothsy.in",
                             IsActive = true,
@@ -198,7 +201,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 5,
                             Address = "Kottayam, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8837),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3563),
                             District = "Kottayam",
                             Email = "clothsy.kottayam@clothsy.in",
                             IsActive = true,
@@ -209,7 +212,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 6,
                             Address = "Idukki, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8838),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3565),
                             District = "Idukki",
                             Email = "clothsy.idukki@clothsy.in",
                             IsActive = true,
@@ -220,7 +223,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 7,
                             Address = "Ernakulam, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8840),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3566),
                             District = "Ernakulam",
                             Email = "clothsy.ernakulam@clothsy.in",
                             IsActive = true,
@@ -231,7 +234,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 8,
                             Address = "Thrissur, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8841),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3568),
                             District = "Thrissur",
                             Email = "clothsy.thrissur@clothsy.in",
                             IsActive = true,
@@ -242,7 +245,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 9,
                             Address = "Palakkad, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8842),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3569),
                             District = "Palakkad",
                             Email = "clothsy.palakkad@clothsy.in",
                             IsActive = true,
@@ -253,7 +256,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 10,
                             Address = "Malappuram, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8844),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3571),
                             District = "Malappuram",
                             Email = "clothsy.malappuram@clothsy.in",
                             IsActive = true,
@@ -264,7 +267,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 11,
                             Address = "Kozhikode, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8845),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3572),
                             District = "Kozhikode",
                             Email = "clothsy.kozhikode@clothsy.in",
                             IsActive = true,
@@ -275,7 +278,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 12,
                             Address = "Wayanad, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8846),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3574),
                             District = "Wayanad",
                             Email = "clothsy.wayanad@clothsy.in",
                             IsActive = true,
@@ -286,7 +289,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 13,
                             Address = "Kannur, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8848),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3575),
                             District = "Kannur",
                             Email = "clothsy.kannur@clothsy.in",
                             IsActive = true,
@@ -297,7 +300,7 @@ namespace Clothsy.Migrations
                         {
                             Id = 14,
                             Address = "Kasaragod, Kerala",
-                            CreatedAt = new DateTime(2025, 11, 20, 11, 2, 35, 624, DateTimeKind.Utc).AddTicks(8849),
+                            CreatedAt = new DateTime(2025, 11, 20, 10, 37, 34, 364, DateTimeKind.Utc).AddTicks(3577),
                             District = "Kasaragod",
                             Email = "clothsy.kasaragod@clothsy.in",
                             IsActive = true,

@@ -1,4 +1,4 @@
-using Clothsy.Data;
+﻿using Clothsy.Data;
 using Clothsy.Services.AuthServices.Signup_Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -44,14 +44,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod());
-});
-
 
 // Configure SQL Server Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -96,18 +88,21 @@ builder.Services.AddCors(options =>
     });
 });
 
+// 🔥 ADD THIS LINE - Allow external connections from mobile devices
+builder.WebHost.UseUrls("http://0.0.0.0:7269", "https://localhost:7269");
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-// Enable Swagger in both Development and Production for testing
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+// 🔥 COMMENT OUT OR REMOVE THIS LINE for mobile testing
+// app.UseHttpsRedirection();
+
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors("AllowAll");
 app.MapControllers();
 
 app.Run();
