@@ -26,7 +26,8 @@ namespace Clothsy.Controllers
                     h.Address,
                     h.District,
                     h.Email,
-                    h.Phone
+                    h.Phone,
+                    h.WorkingHours
                 })
                 .ToListAsync();
 
@@ -59,7 +60,8 @@ namespace Clothsy.Controllers
                     h.Address,
                     h.District,
                     h.Email,
-                    h.Phone
+                    h.Phone,
+                    h.WorkingHours
                 })
                 .FirstOrDefaultAsync();
 

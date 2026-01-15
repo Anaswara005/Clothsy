@@ -16,6 +16,7 @@ namespace OtpAuthApi.Services
     }
 
     public class TokenService : ITokenService
+
     {
         private readonly IConfiguration _configuration;
 
@@ -23,25 +24,28 @@ namespace OtpAuthApi.Services
         {
             _configuration = configuration;
         }
-
         public string GenerateToken(int userId, string email)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
+            var secretKey = jwtSettings["SecretKey"]
+                ?? throw new InvalidOperationException("JWT SecretKey not configured");
+
             var issuer = jwtSettings["Issuer"] ?? "ClothsyAPI";
             var audience = jwtSettings["Audience"] ?? "ClothsyApp";
-            var expiryMinutes = int.Parse(jwtSettings["ExpiryMinutes"] ?? "43200"); // 30 days default
+            var expiryMinutes = int.Parse(jwtSettings["ExpiryMinutes"] ?? "43200");
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("userId", userId.ToString())
-            };
+{
+    new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+    new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+    new Claim(JwtRegisteredClaimNames.Email, email),
+    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+    new Claim("userId", userId.ToString())
+};
+
 
             var token = new JwtSecurityToken(
                 issuer: issuer,

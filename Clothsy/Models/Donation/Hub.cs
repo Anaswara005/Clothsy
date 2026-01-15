@@ -26,6 +26,8 @@ namespace Clothsy.Models.Donation
         [Required]
         [MaxLength(20)]
         public string Phone { get; set; } = string.Empty;
+        public string WorkingHours { get; set; } = "10:00 AM - 5:00 PM";
+
 
         public bool IsActive { get; set; } = true;
 

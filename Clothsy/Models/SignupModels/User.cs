@@ -1,5 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Clothsy.Models.Profile;
+using Clothsy.Models.SignupModels;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Net;
 
 namespace Clothsy.Models.SignupModels
 {
@@ -25,5 +29,8 @@ namespace Clothsy.Models.SignupModels
         public string PasswordHash { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation property
+        public virtual ICollection<Address>? Addresses { get; set; }
     }
 }

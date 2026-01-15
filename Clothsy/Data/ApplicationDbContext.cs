@@ -1,9 +1,9 @@
-﻿
-
-using Microsoft.EntityFrameworkCore;
-using Clothsy.Models;
-using Clothsy.Models.SignupModels;
+﻿using Clothsy.Models;
 using Clothsy.Models.Donation;
+using Clothsy.Models.Profile;
+using Clothsy.Models.SignupModels;
+using Clothsy.Models.Web.Auth;
+using Microsoft.EntityFrameworkCore;
 namespace Clothsy.Data
 {
     public class ApplicationDbContext : DbContext
@@ -15,6 +15,11 @@ namespace Clothsy.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Hub> Hubs { get; set; }
         public DbSet<Donation> Donations { get; set; }
+        public DbSet<DonationImage> DonationImages { get; set; }
+        public DbSet<Address> Addresses { get; set; }
+
+        public DbSet<Request> Requests { get; set; }
+        public DbSet<DonationRequest> DonationRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,26 +39,11 @@ namespace Clothsy.Data
                 entity.HasIndex(h => h.Email).IsUnique();
             });
 
-            // Donation configuration
-            modelBuilder.Entity<Donation>(entity =>
-            {
-                entity.HasIndex(d => d.DonationId).IsUnique();
-
-                entity.HasOne(d => d.Donor)
-                    .WithMany()
-                    .HasForeignKey(d => d.DonorUserId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(d => d.AssignedHub)
-                    .WithMany()
-                    .HasForeignKey(d => d.AssignedHubId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
 
             // Seed Kerala District Hubs
             modelBuilder.Entity<Hub>().HasData(
                 new Hub
-               {
+                {
                     Id = 1,
                     Name = "Clothsy Central Hub - Trivandrum",
                     Email = "clothsy.trivandrum@clothsy.in",
@@ -194,16 +184,92 @@ namespace Clothsy.Data
                }
 
             );
+            // User configuration
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.PhoneNumber)
+                .IsUnique();
+
+            // Address configuration
+            modelBuilder.Entity<Address>()
+                .HasOne(a => a.User)
+                .WithMany(u => u.Addresses)
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // -------------- DONATION --------------
+            modelBuilder.Entity<Donation>(entity =>
+            {
+                entity.HasOne(d => d.Donor)
+                     .WithMany()
+                     .HasForeignKey(d => d.DonorUserId)
+                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.AssignedHub)
+                    .WithMany()
+                    .HasForeignKey(d => d.AssignedHubId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+            // DonationImage 
+            modelBuilder.Entity<DonationImage>(entity =>
+            {
+                entity.HasOne(di => di.Donation)
+                    .WithMany(d => d.Images)
+                    .HasForeignKey(di => di.DonationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // -------------- REQUEST --------------
+            modelBuilder.Entity<Request>(entity =>
+            {
+                entity.HasOne(r => r.Requester)
+                    .WithMany()
+                    .HasForeignKey(r => r.RequesterId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(r => r.DeliveryAddress)
+                    .WithMany()
+                    .HasForeignKey(r => r.AddressId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+            // -------------- SUPPORT TICKET --------------
+            modelBuilder.Entity<SupportTicket>()
+    .HasOne(st => st.User)
+    .WithMany()
+    .HasForeignKey(st => st.UserId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure DonationRequest relationships
+            modelBuilder.Entity<DonationRequest>()
+                .HasOne(dr => dr.Donation)
+                .WithMany()
+                .HasForeignKey(dr => dr.DonationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DonationRequest>()
+                .HasOne(dr => dr.Requester)
+                .WithMany()
+                .HasForeignKey(dr => dr.RequesterId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DonationRequest>()
+                .HasOne(dr => dr.Address)
+                .WithMany()
+                .HasForeignKey(dr => dr.AddressId);
         }
+
+        public DbSet<SupportTicket> SupportTickets { get; set; }
+        public DbSet<NotificationRead> NotificationReads { get; set; }
+
+        //Hub and Admin portal
+        public DbSet<WebUser> WebUsers { get; set; }
+
+
+
+
     }
 }
-
-
-
-
-
-
-
-
 
 

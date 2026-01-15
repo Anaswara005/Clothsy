@@ -179,5 +179,76 @@ namespace ClothsyAPI.Controllers
                 message = "Logout successful"
             });
         }
+        [HttpPost("verify-user")]
+        public async Task<IActionResult> VerifyUser([FromBody] VerifyUserRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Validation failed",
+                    errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
+            }
+
+            // Check if user exists with provided email and phone
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == request.Email && u.PhoneNumber == request.PhoneNumber);
+
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "No account found with this email and phone number"
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "User verified successfully"
+            });
+        }
+
+        // POST: api/auth/reset-password
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Validation failed",
+                    errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
+            }
+
+            // Find user
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == request.Email && u.PhoneNumber == request.PhoneNumber);
+
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "User not found"
+                });
+            }
+
+            // Hash new password
+            user.PasswordHash = _passwordService.HashPassword(request.NewPassword);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Password reset successful"
+            });
+        }
     }
 }
