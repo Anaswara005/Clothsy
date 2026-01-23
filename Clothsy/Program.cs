@@ -47,7 +47,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = true,
             ValidIssuer = jwtSettings["Issuer"],
             ValidateAudience = true,
-            ValidAudience = jwtSettings["Audience"],
+            ValidAudiences = new[] { "ClothsyApp", "ClothsyWeb" },
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero // Ensure token expiration is exact
         };

@@ -14,6 +14,7 @@ namespace Clothsy.Models.Donation
         [Required]
         [MaxLength(500)]
         public string Address { get; set; } = string.Empty;
+        public int DistrictId { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -26,7 +27,14 @@ namespace Clothsy.Models.Donation
         [Required]
         [MaxLength(20)]
         public string Phone { get; set; } = string.Empty;
-        public string WorkingHours { get; set; } = "10:00 AM - 5:00 PM";
+        [Required]
+        [MaxLength(20)]
+        public string HubCode { get; set; } = string.Empty;
+
+        public TimeSpan OpenTime { get; set; }
+        public TimeSpan CloseTime { get; set; }
+        public string WorkingDays { get; set; } = string.Empty;
+
 
 
         public bool IsActive { get; set; } = true;

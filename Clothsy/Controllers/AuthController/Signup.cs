@@ -76,6 +76,7 @@ namespace ClothsyAPI.Controllers
                 FullName = request.FullName,
                 PhoneNumber = request.PhoneNumber,
                 Email = request.Email,
+                District = request.District,
                 PasswordHash = passwordHash,
                 CreatedAt = DateTime.UtcNow
             };

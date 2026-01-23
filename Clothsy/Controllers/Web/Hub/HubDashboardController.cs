@@ -1,49 +1,114 @@
 ﻿using Clothsy.Data;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
-[Authorize(Roles = "HUB")]
-[ApiController]
-[Route("api/web/hub/dashboard")]
-public class HubDashboardController : ControllerBase
+namespace Clothsy.Controllers.Web.Hub
 {
-    private readonly ApplicationDbContext _context;
-
-    public HubDashboardController(ApplicationDbContext context)
+    [ApiController]
+    [Route("api/web/hub/dashboard")]
+    public class HubDashboardController : BaseHubController
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    [HttpGet]
-    public IActionResult GetDashboard()
-    {
-        var email = User.FindFirstValue(ClaimTypes.Email);
-
-        var webUser = _context.WebUsers
-            .FirstOrDefault(x => x.Email == email && x.Role == "HUB");
-
-        if (webUser == null)
-            return Unauthorized();
-
-        // ✅ Hub IS the WebUser
-        var hubId = webUser.Id;
-
-        var response = new
+        public HubDashboardController(ApplicationDbContext context)
         {
-            PendingApprovals = _context.Donations
-                .Count(d => d.AssignedHubId == hubId && d.Status == "Waiting"),
+            _context = context;
+        }
 
-            ApprovedItems = _context.Donations
-                .Count(d => d.AssignedHubId == hubId && d.Status == "Approved"),
+        [HttpGet]
+        public IActionResult GetDashboard([FromQuery] string range = "today")
+        {
+            var hubId = GetHubId();
+            var district = GetDistrict(); // ✅ Get district from token
 
-            ActiveRequests = _context.Requests
-                .Count(r => r.HubId == hubId && r.Status == "Active"),
+            // 🔒 Hub validation
+            if (!_context.Hubs.Any(h => h.Id == hubId && h.IsActive))
+                return Unauthorized("Invalid or inactive hub");
 
-            TotalDistributed = _context.Requests
-                .Count(r => r.HubId == hubId && r.Status == "Completed")
-        };
+            // 🕒 Time window calculation
+            var now = DateTime.UtcNow;
+            DateTime from;
+            DateTime to;
 
-        return Ok(response);
+            switch (range.ToLower())
+            {
+                case "today":
+                    // Today: Start of current day to end of current day
+                    from = now.Date;
+                    to = now.Date.AddDays(1).AddTicks(-1); // 23:59:59.999
+                    break;
+
+                case "week":
+                    // Week: Most recent Sunday to coming Saturday
+                    int daysSinceSunday = ((int)now.DayOfWeek);
+                    from = now.Date.AddDays(-daysSinceSunday); // Most recent Sunday
+                    to = from.AddDays(7).AddTicks(-1); // Coming Saturday 23:59:59.999
+                    break;
+
+                case "month":
+                    // Month: First day to last day of current month
+                    from = new DateTime(now.Year, now.Month, 1);
+                    to = from.AddMonths(1).AddTicks(-1); // Last moment of the month
+                    break;
+
+                case "year":
+                    // Year: January 1st to December 31st of current year
+                    from = new DateTime(now.Year, 1, 1);
+                    to = new DateTime(now.Year, 12, 31, 23, 59, 59, 999);
+                    break;
+
+                default:
+                    from = now.Date;
+                    to = now.Date.AddDays(1).AddTicks(-1);
+                    break;
+            }
+            // 📥 Pending Approvals (Waiting or Pending status)
+            var pendingApprovals = _context.Donations.Count(d =>
+                d.AssignedHubId == hubId &&
+                d.District == district && // ✅ Filter by district
+                (d.Status == "Waiting" || d.Status == "Pending")
+            );
+
+            // ✅ Approved Items
+            var approvedItems = _context.Donations.Count(d =>
+                d.AssignedHubId == hubId &&
+                d.District == district && // ✅ Filter by district
+                d.Status == "Approved" &&
+                d.ApprovedAt != null &&
+                d.ApprovedAt >= from &&
+                d.ApprovedAt <= to
+            );
+
+
+            // 📝 Active Requests (Only Pending requests awaiting hub action)
+            var activeRequests = _context.DonationRequests.Count(r =>
+                r.Status == "Pending" &&
+                _context.Donations.Any(d =>
+                    d.Id == r.DonationId &&
+                    d.AssignedHubId == hubId &&
+                    d.District == district // ✅ Filter by district
+                )
+            );
+            // 🚚 Total Distributed (Approved and no longer available)
+            var totalDistributed = _context.Donations.Count(d =>
+                d.AssignedHubId == hubId &&
+                d.District == district && // ✅ Filter by district
+                d.Status == "Approved" &&
+                d.IsAvailable == false &&
+                d.ApprovedAt != null &&
+                d.ApprovedAt >= from &&
+                d.ApprovedAt <= to
+            );
+
+            return Ok(new
+            {
+                range,
+                from,
+                to,
+                pendingApprovals,
+                approvedItems,
+                activeRequests,
+                totalDistributed
+            });
+        }
     }
 }

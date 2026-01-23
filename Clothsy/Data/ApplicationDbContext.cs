@@ -18,7 +18,6 @@ namespace Clothsy.Data
         public DbSet<DonationImage> DonationImages { get; set; }
         public DbSet<Address> Addresses { get; set; }
 
-        public DbSet<Request> Requests { get; set; }
         public DbSet<DonationRequest> DonationRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -221,19 +220,7 @@ namespace Clothsy.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // -------------- REQUEST --------------
-            modelBuilder.Entity<Request>(entity =>
-            {
-                entity.HasOne(r => r.Requester)
-                    .WithMany()
-                    .HasForeignKey(r => r.RequesterId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(r => r.DeliveryAddress)
-                    .WithMany()
-                    .HasForeignKey(r => r.AddressId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+         
             // -------------- SUPPORT TICKET --------------
             modelBuilder.Entity<SupportTicket>()
     .HasOne(st => st.User)
@@ -257,7 +244,12 @@ namespace Clothsy.Data
             modelBuilder.Entity<DonationRequest>()
                 .HasOne(dr => dr.Address)
                 .WithMany()
-                .HasForeignKey(dr => dr.AddressId);
+                .HasForeignKey(dr => dr.AddressId); modelBuilder.Entity<SupportTicketReply>()
+    .HasOne(r => r.Ticket)
+    .WithMany(t => t.Replies)
+    .HasForeignKey(r => r.TicketId)
+    .OnDelete(DeleteBehavior.Cascade);
+
         }
 
         public DbSet<SupportTicket> SupportTickets { get; set; }
@@ -266,7 +258,11 @@ namespace Clothsy.Data
         //Hub and Admin portal
         public DbSet<WebUser> WebUsers { get; set; }
 
+        public DbSet<SupportTicketReply> SupportTicketReplies { get; set; }
+        public DbSet<SystemSettings> SystemSettings { get; set; }
 
+        
+        
 
 
     }

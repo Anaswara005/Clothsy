@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Clothsy.Data;
+
 namespace Clothsy.Controllers
 {
     [ApiController]
@@ -8,6 +9,7 @@ namespace Clothsy.Controllers
     public class HubsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+
         public HubsController(ApplicationDbContext context)
         {
             _context = context;
@@ -27,21 +29,29 @@ namespace Clothsy.Controllers
                     h.District,
                     h.Email,
                     h.Phone,
-                    h.WorkingHours
+                    openingTime = h.OpenTime.ToString(@"hh\:mm"),
+                    closingTime = h.CloseTime.ToString(@"hh\:mm"),
+                    workingDays = h.WorkingDays
                 })
                 .ToListAsync();
 
             return Ok(new { success = true, data = hubs });
         }
 
-        // GET: api/hubs/districts - Get all available districts
+        // GET: api/hubs/districts - Get all available districts with IDs
         [HttpGet("districts")]
         public async Task<IActionResult> GetDistricts()
         {
             var districts = await _context.Hubs
                 .Where(h => h.IsActive)
-                .Select(h => h.District)
+                .Select(h => new { h.DistrictId, h.District })
                 .Distinct()
+                .Select(d => new
+                {
+                    id = d.DistrictId,
+                    name = d.District
+                })
+                .OrderBy(d => d.name)
                 .ToListAsync();
 
             return Ok(new { success = true, data = districts });
@@ -61,7 +71,9 @@ namespace Clothsy.Controllers
                     h.District,
                     h.Email,
                     h.Phone,
-                    h.WorkingHours
+                    openingTime = h.OpenTime.ToString(@"hh\:mm"),
+                    closingTime = h.CloseTime.ToString(@"hh\:mm"),
+                    workingDays = h.WorkingDays
                 })
                 .FirstOrDefaultAsync();
 

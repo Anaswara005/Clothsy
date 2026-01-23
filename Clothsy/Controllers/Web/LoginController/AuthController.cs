@@ -26,9 +26,21 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequestDto dto)
     {
+        var identifier = dto.Identifier.Trim();
+
+        // Normalize phone number
+        var normalizedPhone = identifier
+            .Replace(" ", "")
+            .Replace("+", "");
+
+        if (normalizedPhone.StartsWith("91") && normalizedPhone.Length > 10)
+        {
+            normalizedPhone = normalizedPhone.Substring(normalizedPhone.Length - 10);
+        }
+
         var user = await _context.WebUsers.FirstOrDefaultAsync(u =>
-            u.Email == dto.Identifier ||
-            u.PhoneNumber == dto.Identifier);
+            u.Email == identifier ||
+            u.PhoneNumber.EndsWith(normalizedPhone));
 
         if (user == null)
             return Unauthorized("Invalid credentials");
@@ -42,8 +54,32 @@ public class AuthController : ControllerBase
         if (user.Role != "ADMIN" && user.Role != "HUB")
             return Unauthorized("Website access denied");
 
-        // ✅ match your existing token service
-        var token = _tokenService.GenerateToken(user.Id, user.Email);
+        int? hubId = null;
+        string? district = null; // ✅ ADD DISTRICT VARIABLE
+
+        if (user.Role == "HUB")
+        {
+            // ✅ FETCH BOTH HubId AND District
+            var hub = await _context.Hubs
+                .Where(h => h.HubCode == user.HubCode && h.IsActive)
+                .Select(h => new { h.Id, h.District })
+                .FirstOrDefaultAsync();
+
+            if (hub == null)
+                return Unauthorized("Hub not mapped or inactive");
+
+            hubId = hub.Id;
+            district = hub.District; // ✅ STORE DISTRICT
+        }
+
+        // ✅ PASS DISTRICT TO TOKEN GENERATION
+        var token = _tokenService.GenerateWebToken(
+            user.Id,
+            user.Email,
+            user.Role,
+            hubId,
+            district // ✅ NEW PARAMETER
+        );
 
         return Ok(new LoginResponseDto
         {

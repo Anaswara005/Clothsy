@@ -54,8 +54,12 @@ namespace Clothsy.Models.Donation
         public string Status { get; set; } = "Waiting"; // waiting, Approved, Rejected
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? ReceivedAt { get; set; }
+
         public DateTime? ApprovedAt { get; set; }
         public DateTime? RejectedAt { get; set; }
+        public string? RejectionReason { get; set; }
+
 
         // Navigation properties
         [ForeignKey("DonorUserId")]
@@ -63,10 +67,14 @@ namespace Clothsy.Models.Donation
 
         [ForeignKey("AssignedHubId")]
         public Hub? AssignedHub { get; set; }
+        public DateTime? CollectedAt { get; set; }
 
         public ICollection<DonationImage> Images { get; set; } = new List<DonationImage>(); // 👈 NEW
 
-        public virtual Request? Request { get; set; }
+       
+        public ICollection<DonationRequest> DonationRequests { get; set; }
+            = new List<DonationRequest>();
+
         public bool IsAvailable { get; set; } = true;
 
     }

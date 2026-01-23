@@ -24,7 +24,8 @@ namespace Clothsy.Models.SignupModels
         [Required]
         [MaxLength(100)]
         public string Email { get; set; } = string.Empty;
-
+        public string? District { get; set; }
+      
         [Required]
         public string PasswordHash { get; set; } = string.Empty;
 

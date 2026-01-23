@@ -26,5 +26,8 @@ namespace Clothsy.DTOs.SignupDTOs
         [Required(ErrorMessage = "Confirm password is required")]
         [Compare("Password", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required]
+        public string? District { get; set; }
     }
 }

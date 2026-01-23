@@ -22,6 +22,40 @@ namespace Clothsy.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Clothsy.Data.SystemSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("AutoArchiveDays")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("EmailNotificationsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SupportEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SystemName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SystemSettings");
+                });
+
             modelBuilder.Entity("Clothsy.Models.Donation.Donation", b =>
                 {
                     b.Property<int>("Id")
@@ -46,6 +80,9 @@ namespace Clothsy.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("CollectedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -69,8 +106,14 @@ namespace Clothsy.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ReceivedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("RejectedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Size")
                         .IsRequired()
@@ -140,11 +183,20 @@ namespace Clothsy.Migrations
                     b.Property<DateTime?>("ApprovedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeliveredAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("DonationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DonationId1")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("RejectedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("RequestedAt")
                         .HasColumnType("datetime2");
@@ -162,6 +214,8 @@ namespace Clothsy.Migrations
                     b.HasIndex("AddressId");
 
                     b.HasIndex("DonationId");
+
+                    b.HasIndex("DonationId1");
 
                     b.HasIndex("RequesterId");
 
@@ -181,6 +235,9 @@ namespace Clothsy.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<TimeSpan>("CloseTime")
+                        .HasColumnType("time");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -189,10 +246,18 @@ namespace Clothsy.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("DistrictId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("HubCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -202,12 +267,15 @@ namespace Clothsy.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<TimeSpan>("OpenTime")
+                        .HasColumnType("time");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("WorkingHours")
+                    b.Property<string>("WorkingDays")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -223,222 +291,226 @@ namespace Clothsy.Migrations
                         {
                             Id = 1,
                             Address = " Trivandrum, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1023),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7593),
                             District = "Trivandrum",
+                            DistrictId = 0,
                             Email = "clothsy.trivandrum@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Trivandrum",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00000",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 2,
                             Address = "Kollam, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1027),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7607),
                             District = "Kollam",
+                            DistrictId = 0,
                             Email = "clothsy.kollam@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Kollam",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00001",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 3,
                             Address = "Pathanamthitta, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1029),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7611),
                             District = "Pathanamthitta",
+                            DistrictId = 0,
                             Email = "clothsy.pathanamthitta@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Pathanamthitta",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00002",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 4,
                             Address = "Alappuzha, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1031),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7656),
                             District = "Alappuzha",
+                            DistrictId = 0,
                             Email = "clothsy.alappuzha@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Alappuzha",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00003",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 5,
                             Address = "Kottayam, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1032),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7659),
                             District = "Kottayam",
+                            DistrictId = 0,
                             Email = "clothsy.kottayam@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Kottayam",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00004",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 6,
                             Address = "Idukki, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1034),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7661),
                             District = "Idukki",
+                            DistrictId = 0,
                             Email = "clothsy.idukki@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Idukki",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00005",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 7,
                             Address = "Ernakulam, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1035),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7664),
                             District = "Ernakulam",
+                            DistrictId = 0,
                             Email = "clothsy.ernakulam@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Ernakulam",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00006",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 8,
                             Address = "Thrissur, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1037),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7666),
                             District = "Thrissur",
+                            DistrictId = 0,
                             Email = "clothsy.thrissur@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Thrissur",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00007",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 9,
                             Address = "Palakkad, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1038),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7669),
                             District = "Palakkad",
+                            DistrictId = 0,
                             Email = "clothsy.palakkad@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Palakkad",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00008",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 10,
                             Address = "Malappuram, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1040),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7671),
                             District = "Malappuram",
+                            DistrictId = 0,
                             Email = "clothsy.malappuram@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Malappuram",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00009",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 11,
                             Address = "Kozhikode, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1041),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7674),
                             District = "Kozhikode",
+                            DistrictId = 0,
                             Email = "clothsy.kozhikode@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Kozhikode",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00010",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 12,
                             Address = "Wayanad, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1042),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7680),
                             District = "Wayanad",
+                            DistrictId = 0,
                             Email = "clothsy.wayanad@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Wayanad",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00011",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 13,
                             Address = "Kannur, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1044),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7683),
                             District = "Kannur",
+                            DistrictId = 0,
                             Email = "clothsy.kannur@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Kannur",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00012",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         },
                         new
                         {
                             Id = 14,
                             Address = "Kasaragod, Kerala",
-                            CreatedAt = new DateTime(2026, 1, 16, 10, 22, 16, 218, DateTimeKind.Utc).AddTicks(1045),
+                            CloseTime = new TimeSpan(0, 0, 0, 0, 0),
+                            CreatedAt = new DateTime(2026, 1, 23, 10, 55, 59, 197, DateTimeKind.Utc).AddTicks(7685),
                             District = "Kasaragod",
+                            DistrictId = 0,
                             Email = "clothsy.kasaragod@clothsy.in",
+                            HubCode = "",
                             IsActive = true,
                             Name = "Clothsy Central Hub - Kasaragod",
+                            OpenTime = new TimeSpan(0, 0, 0, 0, 0),
                             Phone = "+91 90000 00013",
-                            WorkingHours = "10:00 AM - 5:00 PM"
+                            WorkingDays = ""
                         });
-                });
-
-            modelBuilder.Entity("Clothsy.Models.Donation.Request", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AddressId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DeliveryInstructions")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("DonationId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("HubId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("RequestedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("RequesterId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AddressId");
-
-                    b.HasIndex("DonationId")
-                        .IsUnique();
-
-                    b.HasIndex("HubId");
-
-                    b.HasIndex("RequesterId");
-
-                    b.ToTable("Requests");
                 });
 
             modelBuilder.Entity("Clothsy.Models.NotificationRead", b =>
@@ -533,6 +605,13 @@ namespace Clothsy.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DistrictId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -554,6 +633,40 @@ namespace Clothsy.Migrations
                     b.ToTable("SupportTickets");
                 });
 
+            modelBuilder.Entity("Clothsy.Models.Profile.SupportTicketReply", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("SenderRole")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("SupportTicketReplies");
+                });
+
             modelBuilder.Entity("Clothsy.Models.SignupModels.User", b =>
                 {
                     b.Property<int>("Id")
@@ -566,6 +679,9 @@ namespace Clothsy.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<string>("District")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -677,6 +793,10 @@ namespace Clothsy.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Clothsy.Models.Donation.Donation", null)
+                        .WithMany("DonationRequests")
+                        .HasForeignKey("DonationId1");
+
                     b.HasOne("Clothsy.Models.SignupModels.User", "Requester")
                         .WithMany()
                         .HasForeignKey("RequesterId")
@@ -686,39 +806,6 @@ namespace Clothsy.Migrations
                     b.Navigation("Address");
 
                     b.Navigation("Donation");
-
-                    b.Navigation("Requester");
-                });
-
-            modelBuilder.Entity("Clothsy.Models.Donation.Request", b =>
-                {
-                    b.HasOne("Clothsy.Models.Profile.Address", "DeliveryAddress")
-                        .WithMany()
-                        .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Clothsy.Models.Donation.Donation", "Donation")
-                        .WithOne("Request")
-                        .HasForeignKey("Clothsy.Models.Donation.Request", "DonationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Clothsy.Models.Web.Auth.WebUser", "Hub")
-                        .WithMany()
-                        .HasForeignKey("HubId");
-
-                    b.HasOne("Clothsy.Models.SignupModels.User", "Requester")
-                        .WithMany()
-                        .HasForeignKey("RequesterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DeliveryAddress");
-
-                    b.Navigation("Donation");
-
-                    b.Navigation("Hub");
 
                     b.Navigation("Requester");
                 });
@@ -756,11 +843,27 @@ namespace Clothsy.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Clothsy.Models.Profile.SupportTicketReply", b =>
+                {
+                    b.HasOne("Clothsy.Models.Profile.SupportTicket", "Ticket")
+                        .WithMany("Replies")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("Clothsy.Models.Donation.Donation", b =>
                 {
-                    b.Navigation("Images");
+                    b.Navigation("DonationRequests");
 
-                    b.Navigation("Request");
+                    b.Navigation("Images");
+                });
+
+            modelBuilder.Entity("Clothsy.Models.Profile.SupportTicket", b =>
+                {
+                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("Clothsy.Models.SignupModels.User", b =>

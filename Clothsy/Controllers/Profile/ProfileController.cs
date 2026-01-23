@@ -149,10 +149,12 @@ namespace ClothsyAPI.Controllers
                 // ===============================
 
                 // 1️⃣ Requests made by user
-                var requests = await _context.Requests
-                    .Where(r => r.RequesterId == userId)
-                    .ToListAsync();
-                _context.Requests.RemoveRange(requests);
+                var requests = await _context.DonationRequests
+     .Where(r => r.RequesterId == userId)
+     .ToListAsync();
+
+                _context.DonationRequests.RemoveRange(requests);
+
 
                 // 2️⃣ Donations by user
                 var donations = await _context.Donations

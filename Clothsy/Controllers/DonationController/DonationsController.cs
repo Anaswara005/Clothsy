@@ -5,6 +5,7 @@ using Clothsy.Models;
 using Clothsy.Models.Donation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
@@ -34,11 +35,32 @@ namespace Clothsy.Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             // Find hub by district
-            var hub = await _context.Hubs
-                .FirstOrDefaultAsync(h => h.District == request.District && h.IsActive);
+            var hubs = await _context.Hubs
+     .Where(h => h.District == request.District && h.IsActive)
+     .ToListAsync();
 
-            if (hub == null)
-                return BadRequest(new { success = false, message = "No hub available for this district" });
+            if (!hubs.Any())
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "No hub available for this district"
+                });
+            }
+
+            // 🔥 Auto-balance: pick hub with least active donations
+            var hub = hubs
+                .OrderBy(h =>
+                    _context.Donations.Count(d =>
+                        d.AssignedHubId == h.Id &&
+                        d.Status != "Delivered"
+                    )
+                )
+                .First();
+
+
+
+            
 
             var donationId = GenerateDonationId();
             var title = $"{request.Category}'s {request.ClothingType}";
@@ -165,7 +187,9 @@ namespace Clothsy.Controllers
                         hub.Address,
                         hub.Email,
                         hub.Phone,
-                        hub.WorkingHours
+                        openingTime = hub.OpenTime,
+                        closingTime = hub.CloseTime,
+                        workingDays = hub.WorkingDays
                     }
                 }
             });
@@ -233,6 +257,7 @@ namespace Clothsy.Controllers
                     donation.District,
                     donation.Description,
                     donation.Status,
+                    donation.RejectionReason,
                     images = donation.Images.Select(i => i.ImageUrl).ToList(),
                     createdOn = donation.CreatedAt.ToString("dd-MM-yyyy"),
                     hubInfo = new
@@ -241,7 +266,9 @@ namespace Clothsy.Controllers
                         donation.AssignedHub.Address,
                         donation.AssignedHub.Email,
                         donation.AssignedHub.Phone,
-                        donation.AssignedHub.WorkingHours
+                        donation.AssignedHub.OpenTime,
+                        donation.AssignedHub.CloseTime,
+                        donation.AssignedHub.WorkingDays
                     }
                 }
             });
@@ -444,7 +471,9 @@ namespace Clothsy.Controllers
                 address = donation.AssignedHub.Address,
                 email = donation.AssignedHub.Email,
                 phone = donation.AssignedHub.Phone,
-                workingHours = donation.AssignedHub.WorkingHours
+                openingTime = donation.AssignedHub.OpenTime,
+                closingTime = donation.AssignedHub.CloseTime,
+                workingDays = donation.AssignedHub.WorkingDays
             }
                 }
             });
@@ -533,6 +562,7 @@ namespace Clothsy.Controllers
                         description = d.Description,
                         status = r.Status,
                         requestedAt = r.RequestedAt,
+                        rejectionReason = r.RejectionReason,
                         images = d.Images
                             .OrderByDescending(i => i.IsPrimary)
                             .Select(i => i.ImageUrl)
@@ -545,7 +575,9 @@ namespace Clothsy.Controllers
         address = d.AssignedHub.Address,
         email = d.AssignedHub.Email,
         phone = d.AssignedHub.Phone,
-        workingHours = d.AssignedHub.WorkingHours
+        openingTime = d.AssignedHub.OpenTime,
+        closingTime = d.AssignedHub.CloseTime,
+        workingDays = d.AssignedHub.WorkingDays
     }
 
                     }
