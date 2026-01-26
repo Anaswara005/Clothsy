@@ -51,7 +51,7 @@ namespace Clothsy.Models.Donation
 
         [Required]
         [MaxLength(30)]
-        public string Status { get; set; } = "Waiting"; // waiting, Approved, Rejected
+        public string Status { get; set; } = "Pending"; // waiting, Approved, Rejected
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ReceivedAt { get; set; }

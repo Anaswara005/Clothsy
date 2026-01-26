@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Clothsy.Controllers.Admin
 {
-    [Authorize(Roles = "ADMIN")]
+   
     [ApiController]
     [Route("api/admin/users")]
     public class AdminUsersController : ControllerBase

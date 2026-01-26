@@ -14,11 +14,17 @@ namespace Clothsy.Models.Donation
         [Required]
         [MaxLength(500)]
         public string Address { get; set; } = string.Empty;
+
         public int DistrictId { get; set; }
+
 
         [Required]
         [MaxLength(100)]
         public string District { get; set; } = string.Empty;
+
+        [MaxLength(10)]
+        public string? Pincode { get; set; }
+       
 
         [Required]
         [MaxLength(100)]

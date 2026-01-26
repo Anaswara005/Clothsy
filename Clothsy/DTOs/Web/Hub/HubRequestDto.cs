@@ -2,7 +2,7 @@
 {
     public class HubRequestDto
     {
-        public int RequestId { get; set; }
+        public string RequestId { get; set; } = string.Empty;
         public int DonationId { get; set; }
         public string DonationCode { get; set; } = "";
 

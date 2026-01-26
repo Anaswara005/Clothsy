@@ -38,7 +38,7 @@ namespace Clothsy.Controllers.Web.Hub
                 .OrderByDescending(r => r.RequestedAt)
                 .Select(r => new HubRequestDto
                 {
-                    RequestId = r.Id,
+                    RequestId = !string.IsNullOrEmpty(r.RequestId) ? r.RequestId : $"REQ-{r.Id}", // 👈 Handle legacy data
                     DonationId = r.DonationId,
                     DonationCode = r.Donation!.DonationId,
                     ItemTitle = r.Donation.Title,
@@ -60,7 +60,7 @@ namespace Clothsy.Controllers.Web.Hub
            POST : Approve request - DISTRICT SECURED
         ========================================================= */
         [HttpPost("{id}/approve")]
-        public IActionResult ApproveRequest(int id)
+        public IActionResult ApproveRequest(string id)
         {
             var hubId = GetHubId();
             var district = GetDistrict(); // ✅ GET DISTRICT
@@ -68,7 +68,7 @@ namespace Clothsy.Controllers.Web.Hub
             var request = _context.DonationRequests
                 .Include(r => r.Donation)
                 .FirstOrDefault(r =>
-                    r.Id == id &&
+                    r.RequestId == id && // 👈 Query by RequestId
                     r.Donation != null &&
                     r.Donation.AssignedHubId == hubId &&
                     r.Donation.District == district // ✅ DISTRICT SECURITY CHECK
@@ -95,7 +95,7 @@ namespace Clothsy.Controllers.Web.Hub
            POST : Reject request - DISTRICT SECURED
         ========================================================= */
         [HttpPost("{id}/reject")]
-        public IActionResult RejectRequest(int id, [FromBody] RejectRequestDto dto)
+        public IActionResult RejectRequest(string id, [FromBody] RejectRequestDto dto)
         {
             var hubId = GetHubId();
             var district = GetDistrict(); // ✅ GET DISTRICT
@@ -103,7 +103,7 @@ namespace Clothsy.Controllers.Web.Hub
             var request = _context.DonationRequests
                 .Include(r => r.Donation)
                 .FirstOrDefault(r =>
-                    r.Id == id &&
+                    r.RequestId == id && // 👈 Query by RequestId
                     r.Donation != null &&
                     r.Donation.AssignedHubId == hubId &&
                     r.Donation.District == district // ✅ DISTRICT SECURITY CHECK
@@ -129,7 +129,7 @@ namespace Clothsy.Controllers.Web.Hub
            GET : Images for request's donation - DISTRICT SECURED
         ========================================================= */
         [HttpGet("{id}/images")]
-        public IActionResult GetRequestImages(int id)
+        public IActionResult GetRequestImages(string id)
         {
             var hubId = GetHubId();
             var district = GetDistrict(); // ✅ GET DISTRICT
@@ -137,7 +137,7 @@ namespace Clothsy.Controllers.Web.Hub
             var request = _context.DonationRequests
                 .Include(r => r.Donation)
                 .FirstOrDefault(r =>
-                    r.Id == id &&
+                    r.RequestId == id && // 👈 Query by RequestId
                     r.Donation != null &&
                     r.Donation.AssignedHubId == hubId &&
                     r.Donation.District == district // ✅ DISTRICT SECURITY CHECK
@@ -175,7 +175,7 @@ namespace Clothsy.Controllers.Web.Hub
                 )
                 .Select(r => new HubRequestDto
                 {
-                    RequestId = r.Id,
+                    RequestId = !string.IsNullOrEmpty(r.RequestId) ? r.RequestId : $"REQ-{r.Id}", // 👈 Handle legacy data
                     DonationId = r.DonationId,
                     DonationCode = r.Donation!.DonationId,
                     ItemTitle = r.Donation.Title,
@@ -196,7 +196,7 @@ namespace Clothsy.Controllers.Web.Hub
         }
         // 🔹 POST: Mark request as collected
         [HttpPost("{id}/collect")]
-        public IActionResult MarkRequestAsCollected(int id)
+        public IActionResult MarkRequestAsCollected(string id)
         {
             var hubId = GetHubId();
             var district = GetDistrict();
@@ -204,7 +204,7 @@ namespace Clothsy.Controllers.Web.Hub
             var request = _context.DonationRequests
                 .Include(r => r.Donation)
                 .FirstOrDefault(r =>
-                    r.Id == id &&
+                    r.RequestId == id && // 👈 Query by RequestId
                     r.Donation != null &&
                     r.Donation.AssignedHubId == hubId &&
                     r.Donation.District == district

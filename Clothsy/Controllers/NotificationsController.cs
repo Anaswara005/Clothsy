@@ -33,6 +33,10 @@ namespace Clothsy.Controllers
 
             DateTime? lastRead = lastReadRecord?.LastReadAt;
 
+            // 🔍 DEBUG LOGGING
+            Console.WriteLine($"📊 GetNotifications for UserId={userId}");
+            Console.WriteLine($"📊 LastReadAt from DB: {lastRead?.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+
             // Get notifications for donated items that were requested
             var donationNotifications = await _context.DonationRequests
                 .Where(r => r.Donation!.DonorUserId == userId)
@@ -54,53 +58,67 @@ namespace Clothsy.Controllers
             var allNotifications = new List<NotificationDto>();
 
             // Add donation request notifications
-            allNotifications.AddRange(donationNotifications.Select(r => new NotificationDto
+            foreach (var r in donationNotifications)
             {
-                Id = r.Id,
-                Type = "request",
-                Title = "New Request",
-                Message = $"{r.Requester!.FullName} requested your {r.Donation!.Title}",
-                ItemImage = r.Donation.ThumbnailImageUrl,
-                CreatedAt = r.RequestedAt,
-                IsRead = lastRead.HasValue && r.RequestedAt <= lastRead.Value
-            }));
+                var isRead = lastRead.HasValue && r.RequestedAt <= lastRead.Value;
+                
+                // 🔍 DEBUG LOGGING
+                Console.WriteLine($"  Notification ID={r.Id}, Type=request, RequestedAt={r.RequestedAt:yyyy-MM-dd HH:mm:ss.fff}, IsRead={isRead}");
+                
+                allNotifications.Add(new NotificationDto
+                {
+                    Id = r.Id,
+                    Type = "request",
+                    Title = "New Request",
+                    Message = $"{r.Requester!.FullName} requested your {r.Donation!.Title}",
+                    ItemImage = r.Donation.ThumbnailImageUrl,
+                    CreatedAt = r.RequestedAt,
+                    IsRead = isRead
+                });
+            }
 
 
             // Add status update notifications
-            // Add status update notifications
-            allNotifications.AddRange(requestNotifications.Select(r => new NotificationDto
+            foreach (var r in requestNotifications)
             {
-                Id = r.Id,
-                Type = "status_update",
-                Title = r.Status == "Approved" ? "Request Approved" : "Request Rejected",
-                Message = $"Your request for {r.Donation!.Title} has been {r.Status.ToLower()}",
-                ItemImage = r.Donation.ThumbnailImageUrl,
+                var createdAt = r.Status == "Approved"
+                    ? (r.ApprovedAt ?? r.RequestedAt)
+                    : (r.RejectedAt ?? r.RequestedAt);
 
-                // 🔥 USE REAL EVENT TIME
-                CreatedAt =
-    r.Status == "Approved"
-        ? (r.ApprovedAt ?? r.RequestedAt)
-        : (r.RejectedAt ?? r.RequestedAt),
+                var isRead = lastRead.HasValue &&
+                    (
+                        (r.Status == "Approved" &&
+                         (r.ApprovedAt ?? r.RequestedAt) <= lastRead.Value) ||
+                        (r.Status == "Rejected" &&
+                         (r.RejectedAt ?? r.RequestedAt) <= lastRead.Value)
+                    );
 
+                // 🔍 DEBUG LOGGING
+                Console.WriteLine($"  Notification ID={r.Id}, Type=status_update, CreatedAt={createdAt:yyyy-MM-dd HH:mm:ss.fff}, IsRead={isRead}");
 
-                IsRead = lastRead.HasValue &&
-         (
-           (r.Status == "Approved" &&
-            (r.ApprovedAt ?? r.RequestedAt) <= lastRead.Value) ||
-           (r.Status == "Rejected" &&
-            (r.RejectedAt ?? r.RequestedAt) <= lastRead.Value)
-         )
-
-            }));
+                allNotifications.Add(new NotificationDto
+                {
+                    Id = r.Id,
+                    Type = "status_update",
+                    Title = r.Status == "Approved" ? "Request Approved" : "Request Rejected",
+                    Message = $"Your request for {r.Donation!.Title} has been {r.Status.ToLower()}",
+                    ItemImage = r.Donation.ThumbnailImageUrl,
+                    CreatedAt = createdAt,
+                    IsRead = isRead
+                });
+            }
 
 
             // Sort all notifications by date
             var sortedNotifications = allNotifications
-     .OrderByDescending(n => n.CreatedAt)
-     .ToList();
+                .OrderByDescending(n => n.CreatedAt)
+                .ToList();
 
 
             var unreadCount = sortedNotifications.Count(n => !n.IsRead);
+
+            // 🔍 DEBUG LOGGING
+            Console.WriteLine($"📊 Total notifications: {sortedNotifications.Count}, Unread: {unreadCount}");
 
             return Ok(new
             {
@@ -116,6 +134,14 @@ namespace Clothsy.Controllers
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+            // Add 5 second buffer to ensure all notifications up to this moment are marked as read
+            // This prevents timing/precision issues with DateTime comparisons and database latency
+            var readTimestamp = DateTime.UtcNow.AddSeconds(5);
+
+            // 🔍 DEBUG LOGGING
+            Console.WriteLine($"📝 MarkAllAsRead for UserId={userId}");
+            Console.WriteLine($"📝 Setting LastReadAt={readTimestamp:yyyy-MM-dd HH:mm:ss.fff}");
+
             // Find or create the read record
             var readRecord = await _context.NotificationReads
                 .FirstOrDefaultAsync(nr => nr.UserId == userId);
@@ -125,23 +151,28 @@ namespace Clothsy.Controllers
                 readRecord = new NotificationRead
                 {
                     UserId = userId,
-                    LastReadAt = DateTime.UtcNow
+                    LastReadAt = readTimestamp
                 };
                 _context.NotificationReads.Add(readRecord);
+                Console.WriteLine($"📝 Created new NotificationRead record");
             }
             else
             {
-                readRecord.LastReadAt = DateTime.UtcNow;
+                Console.WriteLine($"📝 Previous LastReadAt was: {readRecord.LastReadAt:yyyy-MM-dd HH:mm:ss.fff}");
+                readRecord.LastReadAt = readTimestamp;
                 _context.NotificationReads.Update(readRecord);
+                Console.WriteLine($"📝 Updated LastReadAt to: {readTimestamp:yyyy-MM-dd HH:mm:ss.fff}");
             }
 
             await _context.SaveChangesAsync();
+            Console.WriteLine($"📝 Changes saved to database");
 
             return Ok(new
             {
                 success = true,
                 message = "All notifications marked as read",
-                timestamp = DateTime.UtcNow
+                timestamp = readTimestamp,
+                unreadCount = 0 // After marking all as read, count should be 0
             });
         }
 

@@ -1,4 +1,5 @@
 ﻿using Clothsy.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Clothsy.Controllers.Admin
@@ -20,12 +21,19 @@ namespace Clothsy.Controllers.Admin
             var data = new
             {
                 activeHubs = _context.Hubs.Count(h => h.IsActive),
+
                 totalUsers = _context.Users.Count(),
+
+                // Donations table = actual donation entries
                 totalDonations = _context.Donations.Count(),
-                itemsDistributed = _context.Donations.Count(d => d.Status == "Distributed")
+
+                // DonationRequest table = real-world distribution
+                itemsCollected = _context.DonationRequests
+                    .Count(r => r.Status == "Collected")
             };
 
             return Ok(data);
         }
+
     }
 }

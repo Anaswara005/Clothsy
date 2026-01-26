@@ -12,6 +12,9 @@ namespace Clothsy.Models.Donation
         public int Id { get; set; }
 
         [Required]
+        public string RequestId { get; set; } // Added RequestId
+
+        [Required]
         public int DonationId { get; set; }
 
         [Required]

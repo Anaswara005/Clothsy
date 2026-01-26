@@ -443,9 +443,12 @@ namespace Clothsy.Controllers
                 return BadRequest(new { success = false, message = "You already have a pending request for this item" });
 
             // Create the request
+            var requestId = $"REQ-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+
             var donationRequest = new DonationRequest
             {
                 DonationId = id,
+                RequestId = requestId, // 👈 NEW ID
                 RequesterId = userId,
                 AddressId = request.AddressId,
                 Status = "Pending",
@@ -462,7 +465,8 @@ namespace Clothsy.Controllers
                 success = true,
                 data = new
                 {
-                    requestId = $"REQ-{donationRequest.Id}",
+                    id = donationRequest.Id, // 🔥 FIX: Return INT ID for frontend compatibility
+                    requestId = donationRequest.RequestId, // String ID separate
                     hub = donation.AssignedHub == null
             ? null
             : new
@@ -489,109 +493,125 @@ namespace Clothsy.Controllers
             );
 
             var requests = await _context.DonationRequests
-                .Where(r => r.RequesterId == userId)
-                .Join(
-                    _context.Donations,
-                    r => r.DonationId,
-                    d => d.Id,
-                    (r, d) => new
-                    {
-                        id = r.Id,
-                        itemName = d.Title,
-                        category = d.Category,
-                        size = d.Size,
-                        imageUrl = d.ThumbnailImageUrl,
-                        status = r.Status,
-                        requestedAt = r.RequestedAt
-                    }
-                )
+                .Where(r => r.RequesterId == userId) // 🔒 HARD FILTER
+                .Select(r => new
+                {
+                    id = r.Id, // 🔥 FIX: Return INT ID
+                    requestId = r.RequestId, // String ID
+                    itemName = r.Donation!.Title,
+                    category = r.Donation.Category,
+                    size = r.Donation.Size,
+                    imageUrl = r.Donation.ThumbnailImageUrl,
+                    status = r.Status,
+                    requestedAt = r.RequestedAt
+                })
+                .OrderByDescending(r => r.requestedAt)
                 .ToListAsync();
 
             return Ok(new { success = true, data = requests });
         }
 
 
-
         [HttpDelete("requests/{id}")]
-        public async Task<IActionResult> CancelRequest(int id)
+        public async Task<IActionResult> CancelRequest(string id)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
+            // 1. Try to find by String RequestId (New System)
             var request = await _context.DonationRequests
                 .Include(r => r.Donation)
-                .FirstOrDefaultAsync(r => r.Id == id && r.RequesterId == userId);
+                .FirstOrDefaultAsync(r => r.RequestId == id && r.RequesterId == userId);
+
+            // 2. Fallback: Try to find by Int PK (Old System / Mismatched Frontend)
+            if (request == null && int.TryParse(id, out int intId))
+            {
+                request = await _context.DonationRequests
+                    .Include(r => r.Donation)
+                    .FirstOrDefaultAsync(r => r.Id == intId && r.RequesterId == userId);
+            }
 
             if (request == null)
-                return NotFound(new { message = "Request not found" });
+                return NotFound(new { success = false, message = "Request not found" });
 
             if (request.Status != "Pending")
-                return BadRequest(new { message = "Cannot cancel non-pending request" });
+                return BadRequest(new { success = false, message = "Cannot cancel non-pending request" });
 
-            // 🔥 CRITICAL FIX
-            request.Donation!.IsAvailable = true;
+            // 🔥 CRITICAL FIX: Make item available again
+            if (request.Donation != null)
+            {
+                request.Donation.IsAvailable = true;
+            }
 
             _context.DonationRequests.Remove(request);
             await _context.SaveChangesAsync();
 
-            return Ok(new { success = true, message = "Request cancelled" });
+            return Ok(new { success = true, message = "Request cancelled successfully" });
         }
-        // GET: api/donations/requests/{id}/details
-        // GET: api/donations/requests/{id}/details
+
         [HttpGet("requests/{id}/details")]
-        public async Task<IActionResult> GetRequestDetails(int id)
+        public async Task<IActionResult> GetRequestDetails(string id)
         {
-            Console.WriteLine($"🔍 GetRequestDetails called with ID: {id}");
-
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            Console.WriteLine($"👤 User ID: {userId}");
 
-            var request = await _context.DonationRequests
-                .Where(r => r.Id == id && r.RequesterId == userId)
-                .Join(
-                    _context.Donations
-                        .Include(d => d.Images)
-                        .Include(d => d.AssignedHub),
-                    r => r.DonationId,
-                    d => d.Id,
-                    (r, d) => new
-                    {
-                        id = r.Id,
-                        itemName = d.Title,
-                        category = d.Category,
-                        size = d.Size,
-                        description = d.Description,
-                        status = r.Status,
-                        requestedAt = r.RequestedAt,
-                        rejectionReason = r.RejectionReason,
-                        images = d.Images
-                            .OrderByDescending(i => i.IsPrimary)
-                            .Select(i => i.ImageUrl)
-                            .ToList(),
-                        hubInfo = d.AssignedHub == null
-    ? null
-    : new
-    {
-        name = d.AssignedHub.Name,
-        address = d.AssignedHub.Address,
-        email = d.AssignedHub.Email,
-        phone = d.AssignedHub.Phone,
-        openingTime = d.AssignedHub.OpenTime,
-        closingTime = d.AssignedHub.CloseTime,
-        workingDays = d.AssignedHub.WorkingDays
-    }
+            // Setup query with Includes
+            var query = _context.DonationRequests
+                .Include(r => r.Donation)
+                    .ThenInclude(d => d!.Images)
+                .Include(r => r.Donation)
+                    .ThenInclude(d => d!.AssignedHub)
+                .AsQueryable();
 
-                    }
-                )
-                .FirstOrDefaultAsync();
+            DonationRequest? request = null;
 
+            // 1. Try finding by Int PK (if input is numeric) used by frontend list
+            if (int.TryParse(id, out int intId))
+            {
+                request = await query.FirstOrDefaultAsync(r => r.Id == intId && r.RequesterId == userId);
+            }
+
+            // 2. Fallback: Try finding by String RequestId
             if (request == null)
             {
-                Console.WriteLine($"❌ Request not found for ID: {id}");
+                request = await query.FirstOrDefaultAsync(r => r.RequestId == id && r.RequesterId == userId);
+            }
+
+            if (request == null || request.Donation == null)
+            {
                 return NotFound(new { success = false, message = "Request not found" });
             }
 
-            Console.WriteLine($"✅ Request found: {request.itemName}");
-            return Ok(new { success = true, data = request });
+            var d = request.Donation;
+
+            var responseData = new
+            {
+                id = request.Id,
+                requestId = request.RequestId,
+                itemName = d.Title,
+                category = d.Category,
+                size = d.Size,
+                description = d.Description,
+                status = request.Status,
+                requestedAt = request.RequestedAt,
+                rejectionReason = request.RejectionReason,
+                images = d.Images
+                            .OrderByDescending(i => i.IsPrimary)
+                            .Select(i => i.ImageUrl)
+                            .ToList(),
+                hubInfo = d.AssignedHub == null
+                    ? null
+                    : new
+                    {
+                        name = d.AssignedHub.Name,
+                        address = d.AssignedHub.Address,
+                        email = d.AssignedHub.Email,
+                        phone = d.AssignedHub.Phone,
+                        openingTime = d.AssignedHub.OpenTime,
+                        closingTime = d.AssignedHub.CloseTime,
+                        workingDays = d.AssignedHub.WorkingDays
+                    }
+            };
+
+            return Ok(new { success = true, data = responseData });
         }
 
         // Helper method to generate unique donation ID
